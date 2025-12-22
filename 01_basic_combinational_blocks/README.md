@@ -80,3 +80,29 @@ The post-synthesis schematic shows the **actual gate-level implementation**.
 
 <img width="1577" height="813" alt="Screenshot 2025-12-09 154526" src="https://github.com/user-attachments/assets/2df369bd-fc92-499c-ab62-54d7e0b0c891" />
 
+##  Tools Used
+- Verilog HDL
+- Xilinx Vivado (Simulation & Synthesis)
+- GTKWave (optional waveform analysis)
+
+---
+
+##  Learning Outcomes
+- Understanding multiplexer operation
+- Writing synthesizable Verilog code
+- Functional verification using testbench
+- RTL vs post-synthesis schematic comparison
+- Introduction to digital design flow
+
+---
+
+##  Applications of Multiplexers
+- Data routing
+- Bus selection
+- ALU input selection
+- Control logic
+- Communication systems
+
+##  Verification Status
+✔ RTL Simulation – Passed  
+✔ Synthesis – Successful 
