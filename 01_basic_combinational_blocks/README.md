@@ -132,6 +132,9 @@ In a **4-to-2 priority encoder**, if multiple inputs are `1`, the **highest-inde
 
 ##  Inputs and Outputs (4-to-2 Priority Encoder)
 
+<img width="700" height="300" alt="image" src="https://github.com/user-attachments/assets/29abc8a2-2e82-4cb7-bd91-adc142af636c" />
+
+
 - Inputs: `I3, I2, I1, I0`  
   (`I3` has the highest priority)
 - Outputs:
@@ -188,6 +191,10 @@ The priority encoder is implemented using:
 - Fully combinational and synthesizable
 - No latches inferred
 
+<img width="1620" height="863" alt="Screenshot 2025-12-09 171102" src="https://github.com/user-attachments/assets/e1c1b04b-a9fe-47d6-be3d-69fa077c05b7" />
+<img width="1631" height="867" alt="Screenshot 2025-12-09 171113" src="https://github.com/user-attachments/assets/7751d1b7-5297-48e4-ac60-26507556b38e" />
+<img width="1626" height="863" alt="Screenshot 2025-12-09 171122" src="https://github.com/user-attachments/assets/c4e3561b-bc7f-4da5-801e-9ec066349c48" />
+
 ---
 
 ## ▶️ Functional Simulation
@@ -199,6 +206,9 @@ To verify correct priority behavior when multiple inputs are active.
 - Apply different combinations of inputs
 - Observe encoded output and valid bit
 - Confirm highest-priority input is always selected
+
+<img width="1619" height="865" alt="Screenshot 2025-12-09 171130" src="https://github.com/user-attachments/assets/34be781d-e967-439e-a2fc-94c22c86be45" />
+
 
 ### Result
 - Correct priority encoding verified
@@ -213,6 +223,8 @@ The RTL schematic shows:
 - Priority logic structure
 - Conditional decision paths
 - Technology-independent representation
+
+<img width="1619" height="863" alt="Screenshot 2025-12-09 171140" src="https://github.com/user-attachments/assets/ce8acb6c-28db-479f-a86e-aa53a46e7114" />
 
 ### Purpose
 - Verify logic correctness
@@ -243,10 +255,10 @@ Shows the **actual hardware realization** after synthesis.
 | Abstract logic | Gate-level implementation |
 | Technology independent | Technology dependent |
 
+<img width="1629" height="870" alt="Screenshot 2025-12-09 171333" src="https://github.com/user-attachments/assets/6f1ba972-670f-4e0e-ac63-379fbd999609" />
+
 ---
 
-
----
 
 ## 🧰 Tools Used
 - Verilog HDL
