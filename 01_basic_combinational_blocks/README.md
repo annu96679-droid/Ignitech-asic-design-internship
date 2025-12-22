@@ -106,3 +106,180 @@ The post-synthesis schematic shows the **actual gate-level implementation**.
 ##  Verification Status
 ✔ RTL Simulation – Passed  
 ✔ Synthesis – Successful 
+
+# 2. Priority Encoder – Verilog Design, Simulation & Synthesis
+
+## Project Overview
+This project implements a **Priority Encoder** using **Verilog HDL** and demonstrates the complete digital design flow:
+- RTL design
+- Functional simulation
+- RTL schematic (before synthesis)
+- Post-synthesis schematic (after synthesis)
+
+A priority encoder assigns **priority to higher-order inputs**. If multiple inputs are high simultaneously, the encoder outputs the binary code of the **highest-priority active input**.
+
+---
+
+##  Theory of Priority Encoder
+
+### What is a Priority Encoder?
+A **priority encoder** is a combinational circuit that converts multiple input lines into a binary code, giving **priority** to one input over others.
+
+Example:  
+In a **4-to-2 priority encoder**, if multiple inputs are `1`, the **highest-index input** is encoded.
+
+---
+
+##  Inputs and Outputs (4-to-2 Priority Encoder)
+
+- Inputs: `I3, I2, I1, I0`  
+  (`I3` has the highest priority)
+- Outputs:
+  - `Y1, Y0` → encoded output
+  - `V` → valid output (indicates at least one input is high)
+
+---
+
+##  Truth Table (Priority Based)
+
+| I3 | I2 | I1 | I0 | Y1 | Y0 | V |
+|----|----|----|----|----|----|---|
+| 0  | 0  | 0  | 0  |  X |  X | 0 |
+| 0  | 0  | 0  | 1  |  0 |  0 | 1 |
+| 0  | 0  | 1  | X  |  0 |  1 | 1 |
+| 0  | 1  | X  | X  |  1 |  0 | 1 |
+| 1  | X  | X  | X  |  1 |  1 | 1 |
+
+ `X` = Don’t care (lower-priority inputs are ignored)
+
+---
+
+##  Boolean Expressions
+
+Y1 = I3 + I2
+Y0 = I3 + (~I2 & I1)
+V = I3 + I2 + I1 + I0
+
+
+These equations ensure that:
+- Higher-priority inputs dominate
+- Lower-priority inputs are ignored if a higher one is active
+
+---
+
+## 🧩 Circuit Diagram Explanation
+
+The priority encoder is implemented using:
+- AND gates
+- OR gates
+- NOT gates
+
+### Working Principle:
+1. The highest-priority input is checked first
+2. If it is active, lower inputs are ignored
+3. Output bits are generated using combinational logic
+4. Valid bit confirms whether any input is active
+
+---
+
+## 🛠️ RTL Design (Verilog HDL)
+- Implemented using `always @(*)`
+- Priority enforced using `if-else` structure
+- Fully combinational and synthesizable
+- No latches inferred
+
+---
+
+## ▶️ Functional Simulation
+
+### Objective
+To verify correct priority behavior when multiple inputs are active.
+
+### Simulation Method
+- Apply different combinations of inputs
+- Observe encoded output and valid bit
+- Confirm highest-priority input is always selected
+
+### Result
+- Correct priority encoding verified
+- Valid signal works correctly
+
+---
+
+## 🧩 RTL Schematic (Before Synthesis)
+
+### Description
+The RTL schematic shows:
+- Priority logic structure
+- Conditional decision paths
+- Technology-independent representation
+
+### Purpose
+- Verify logic correctness
+- Ensure no unintended storage elements
+
+---
+
+## ⚙️ Synthesis
+
+### Description
+Synthesis maps the RTL logic into:
+- Basic logic gates
+- Optimized combinational structures
+- Target FPGA/ASIC standard cells
+
+---
+
+## 🧱 Post-Synthesis Schematic (After Synthesis)
+
+### Description
+Shows the **actual hardware realization** after synthesis.
+
+### Comparison
+
+| RTL Schematic | Post-Synthesis Schematic |
+|--------------|--------------------------|
+| Behavioral | Structural |
+| Abstract logic | Gate-level implementation |
+| Technology independent | Technology dependent |
+
+---
+
+
+---
+
+## 🧰 Tools Used
+- Verilog HDL
+- Xilinx Vivado (Simulation & Synthesis)
+- GTKWave (optional)
+
+---
+
+## 🎯 Learning Outcomes
+- Understanding priority-based encoding
+- Writing synthesizable priority logic
+- Verifying combinational circuits
+- RTL vs gate-level comparison
+- Digital design fundamentals
+
+---
+
+## 📌 Applications of Priority Encoder
+- Interrupt controllers
+- Arbitration logic
+- Keyboard encoding
+- Resource scheduling
+- CPU control units
+
+---
+
+## ✅ Verification Status
+✔ RTL Simulation – Passed  
+✔ Synthesis – Successful  
+
+---
+
+
+
+
+
