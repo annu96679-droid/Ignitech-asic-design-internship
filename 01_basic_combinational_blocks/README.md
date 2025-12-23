@@ -792,7 +792,10 @@ The post-synthesis schematic shows:
 
 ---
 
-
+## Author
+**Anuj Sharma**  
+MSc Tech – Engineering Physics  
+Digital Design | Verilog | VLSI
 
 
 
