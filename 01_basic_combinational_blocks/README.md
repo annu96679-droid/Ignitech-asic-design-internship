@@ -545,6 +545,8 @@ The RTL schematic represents:
 - Arithmetic, logic, and shifter blocks
 - Technology-independent design
 
+<img width="1630" height="910" alt="Screenshot 2025-12-23 015926" src="https://github.com/user-attachments/assets/3d599397-65e5-4d83-96a2-9cc3df07751d" />
+
 ### Purpose
 - Validate logical structure
 - Ensure correct combinational modeling
@@ -566,6 +568,8 @@ Synthesis converts the RTL ALU design into a **gate-level netlist** using the ta
 
 ## Post-Synthesis Schematic (After Synthesis)
 
+<img width="1633" height="870" alt="Screenshot 2025-12-23 020227" src="https://github.com/user-attachments/assets/02e9b5c0-d3a5-49c3-9a64-88fc254294d6" />
+
 ### Description
 The post-synthesis schematic shows:
 - Actual logic gates and adders
@@ -579,12 +583,6 @@ The post-synthesis schematic shows:
 | Behavioral | Structural |
 | Abstract blocks | Logic gates |
 | Technology independent | Technology dependent |
-
----
-
-## Project Directory Structure
-
-
 
 ---
 
@@ -618,10 +616,5 @@ The post-synthesis schematic shows:
 ✔ Synthesis – Successful  
 
 ---
-
-## Author
-**Anuj Sharma**  
-MSc Tech – Engineering Physics  
-Digital Design | Verilog | VLSI
 
 
