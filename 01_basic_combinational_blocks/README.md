@@ -170,7 +170,7 @@ These equations ensure that:
 
 ---
 
-## 🧩 Circuit Diagram Explanation
+## Circuit Diagram Explanation
 
 The priority encoder is implemented using:
 - AND gates
@@ -185,7 +185,7 @@ The priority encoder is implemented using:
 
 ---
 
-## 🛠️ RTL Design (Verilog HDL)
+## RTL Design (Verilog HDL)
 - Implemented using `always @(*)`
 - Priority enforced using `if-else` structure
 - Fully combinational and synthesizable
@@ -197,7 +197,7 @@ The priority encoder is implemented using:
 
 ---
 
-## ▶️ Functional Simulation
+## Functional Simulation
 
 ### Objective
 To verify correct priority behavior when multiple inputs are active.
@@ -216,7 +216,7 @@ To verify correct priority behavior when multiple inputs are active.
 
 ---
 
-## 🧩 RTL Schematic (Before Synthesis)
+## RTL Schematic (Before Synthesis)
 
 ### Description
 The RTL schematic shows:
@@ -232,7 +232,7 @@ The RTL schematic shows:
 
 ---
 
-## ⚙️ Synthesis
+## Synthesis
 
 ### Description
 Synthesis maps the RTL logic into:
@@ -242,7 +242,7 @@ Synthesis maps the RTL logic into:
 
 ---
 
-## 🧱 Post-Synthesis Schematic (After Synthesis)
+## Post-Synthesis Schematic (After Synthesis)
 
 ### Description
 Shows the **actual hardware realization** after synthesis.
@@ -260,14 +260,14 @@ Shows the **actual hardware realization** after synthesis.
 ---
 
 
-## 🧰 Tools Used
+## Tools Used
 - Verilog HDL
 - Xilinx Vivado (Simulation & Synthesis)
 - GTKWave (optional)
 
 ---
 
-## 🎯 Learning Outcomes
+## Learning Outcomes
 - Understanding priority-based encoding
 - Writing synthesizable priority logic
 - Verifying combinational circuits
@@ -276,7 +276,7 @@ Shows the **actual hardware realization** after synthesis.
 
 ---
 
-## 📌 Applications of Priority Encoder
+## Applications of Priority Encoder
 - Interrupt controllers
 - Arbitration logic
 - Keyboard encoding
@@ -285,13 +285,343 @@ Shows the **actual hardware realization** after synthesis.
 
 ---
 
-## ✅ Verification Status
+## Verification Status
 ✔ RTL Simulation – Passed  
 ✔ Synthesis – Successful  
 
 ---
 
+ # 3. 4-Bit Arithmetic Logic Unit (ALU) – Verilog Design, Simulation & Synthesis
+
+## Project Overview
+This project implements a **4-bit Arithmetic Logic Unit (ALU)** using **Verilog HDL** and demonstrates the complete digital design flow:
+- RTL design
+- Functional simulation
+- RTL schematic (before synthesis)
+- Post-synthesis schematic (after synthesis)
+
+The ALU performs **arithmetic, logical, and shift operations** on two 4-bit inputs based on **four select lines** and generates standard status flags.
+
+---
+
+## Theory of 4-Bit ALU
+
+### What is an ALU?
+An **Arithmetic Logic Unit (ALU)** is a core digital block used in processors and controllers to perform:
+- Arithmetic operations (add, subtract, increment, etc.)
+- Logical operations (AND, OR, XOR, NOT)
+- Shift and rotate operations
+
+---
+
+##  Inputs and Outputs
+
+<img width="317" height="159" alt="image" src="https://github.com/user-attachments/assets/972276bf-c1ce-4050-9791-26fcc17532e4" />
+
+## Inputs
+
+| Signal | Width | Description |
+|------|------|------------|
+| `A` | 4-bit | Operand A |
+| `B` | 4-bit | Operand B |
+| `Cin` | 1-bit | Carry input |
+| `sel` | 4-bit | Operation select |
+
+---
+
+## Outputs
+
+| Signal | Width | Description |
+|------|------|------------|
+| `R` | 4-bit | Result |
+| `C` | 1-bit | Carry / Borrow flag |
+| `Z` | 1-bit | Zero flag |
+| `S` | 1-bit | Sign flag |
+| `V` | 1-bit | Overflow flag |
 
 
+---
+
+## ALU Operation Table (4 Select Lines)
+
+| Sel[3:0] | Operation | Description |
+|---------|----------|-------------|
+| 0000 | ADD | R = A + B |
+| 0001 | SUB | R = A − B |
+| 0010 | ADD + Carry | R = A + B + Cin |
+| 0011 | INC | R = A + 1 |
+| 0100 | DEC | R = A − 1 |
+| 0101 | MUL | R = A × B (lower 4 bits) |
+| 0110 | COMPARE | A − B (flags only) |
+| 0111 | PASS B | R = B |
+| 1000 | AND | R = A & B |
+| 1001 | OR | R = A \| B |
+| 1010 | XOR | R = A ^ B |
+| 1011 | NOT | R = ~A |
+| 1100 | LSL | Logical shift left |
+| 1101 | LSR | Logical shift right |
+| 1110 | ROL | Rotate left |
+| 1111 | ROR | Rotate right |
+
+---
+
+## Status Flags Description
+
+- **Carry (C)**: Indicates carry out or borrow
+- **Zero (Z)**: Set when result is zero
+- **Sign (S)**: MSB of result (signed indication)
+- **Overflow (V)**: Indicates signed overflow
+
+---
+
+## RTL Design (Verilog HDL)
+- Implemented using **combinational logic**
+- Uses `always @(*)` and `case` statement
+- Arithmetic, logic, and shift units are integrated
+- Fully synthesizable, latch-free design
+```verilog
+module ALU_4bit(A,B,Cin,sel,R,C,Z,S,V);
+input [3:0] A;
+input [3:0] B;
+input Cin;
+input [3:0] sel;
+
+output reg [3:0] R;
+output reg C;    // carry flag
+output reg Z;    // zero flag
+output reg S;    // sign flag
+output reg V;    // overflow flag
+
+reg [4:0] temp;  // for carry and overflow
+
+always @(*) begin
+    // default values
+    R = 4'b0; 
+    C = 1'b0;
+    V = 1'b0;
+
+    case (sel)
+
+        // Arithmetic operations
+        4'b0000: begin                // ADD
+            temp = A + B;
+            R = temp[3:0];
+            C = temp[4];
+            V = (A[3] == B[3]) && (R[3] != A[3]);
+        end
+
+        4'b0001: begin                // SUB
+            temp = A - B;
+            R = temp[3:0];
+            C = temp[4];
+            V = (A[3] != B[3]) && (R[3] != A[3]);
+        end
+
+        4'b0010: begin                // ADD with Carry
+            temp = A + B + Cin;
+            R = temp[3:0];
+            C = temp[4];
+            V = (A[3] == B[3]) && (R[3] != A[3]);
+        end
+
+        4'b0011: begin                // Increment
+            temp = A + 1;
+            R = temp[3:0];
+            C = temp[4];
+        end
+
+        4'b0100: begin                // Decrement
+            temp = A - 1;
+            R = temp[3:0];
+            C = temp[4];
+        end
+
+        4'b0101: begin                // Multiply
+            temp = A * B;
+            R = temp[3:0];
+            C = temp[4];
+        end
+
+        4'b0110: begin                // Compare (A - B), flags only
+            temp = A - B;
+            R = 4'b0000;
+            C = temp[4];
+            V = (A[3] != B[3]) && (temp[3] != A[3]);
+        end
+
+        4'b0111: begin                // Pass B
+            R = B;
+        end
+
+        // Logical operations
+        4'b1000: R = A & B;            // AND
+        4'b1001: R = A | B;            // OR
+        4'b1010: R = A ^ B;            // XOR
+        4'b1011: R = ~A;               // NOT
+
+        // Shift / Rotate operations
+        4'b1100: R = A << 1;           // Logical left shift
+        4'b1101: R = A >> 1;           // Logical right shift
+        4'b1110: R = {A[2:0], A[3]};   // Rotate left
+        4'b1111: R = {A[0], A[3:1]};   // Rotate right
+
+        default: R = 4'b0000;
+    endcase
+
+    // Flag generation
+    Z = (R == 4'b0000);
+    S = R[3];
+
+end
+endmodule
+```
+---
+
+## Testbench
+
+This testbench verifies the **functional correctness of the 4-bit ALU** by applying different **operation select codes (`sel`)** while keeping the operands constant.  
+All arithmetic, logical, shift, rotate, and compare operations are validated, along with status flags.
+
+
+```
+module alu_tb(); 
+reg [3:0] A, B;
+reg Cin; 
+reg [3:0] sel;
+wire [3:0] R;
+wire C,Z,S,V;
+
+ ALU_4bit A1(.A(A), .B(B), .Cin(Cin), .sel(sel), .R(R), .C(C), .Z(Z), .S(S), .V(V));
+ 
+ initial
+ begin
+       $monitor("$time = %t | A = %b | B = %b | Cin = %b || sel = %b | R = %b | C = %b | Z = %b | S = %b | V = %b",$time,A,B,Cin,sel,R,C,Z,S,V);
+       
+Cin = 0; A = 4'b0011; B = 4'b0001;
+
+   sel = 4'b0000; // ADD
+#5 sel = 4'b0001; // SUB
+#5 sel = 4'b0010; // ADD with carry
+#5 sel = 4'b0011; // INC
+#5 sel = 4'b0100; // DEC
+#5 sel = 4'b0101; // MUL
+#5 sel = 4'b0110; // COMPARE
+#5 sel = 4'b0111; //pass
+#5 sel = 4'b1000; // AND
+#5 sel = 4'b1001; //OR
+#5 sel = 4'b1010; //XOR
+#5 sel = 4'b1011; //NOT
+#5 sel = 4'b1100; // LSL
+#5 sel = 4'b1101; //LSR
+#5 sel = 4'b1110; // ROL
+#5 sel = 4'b1111; //ROR
+$finish;
+end
+endmodule
+```
+## Functional Simulation
+
+### Objective
+To verify the correctness of all ALU operations and flags.
+
+### Simulation Method
+- Apply various values to `A`, `B`, `Cin`, and `Sel`
+- Observe `R` and status flags using `$monitor` or waveforms
+
+<img width="1632" height="863" alt="image" src="https://github.com/user-attachments/assets/d58e78ef-36f6-4bbc-a3b6-27c220e2bc38" />
+
+### Result
+- All arithmetic, logic, and shift operations behave correctly
+- Flags update as expected
+
+---
+
+## RTL Schematic (Before Synthesis)
+
+
+### Description
+The RTL schematic represents:
+- High-level ALU structure
+- Arithmetic, logic, and shifter blocks
+- Technology-independent design
+
+### Purpose
+- Validate logical structure
+- Ensure correct combinational modeling
+- Confirm no unintended latches
+
+---
+
+##  Synthesis
+
+### Description
+Synthesis converts the RTL ALU design into a **gate-level netlist** using the target FPGA/ASIC library.
+
+### Key Points
+- Logic optimization performed
+- Arithmetic blocks mapped efficiently
+- Flag logic synthesized correctly
+
+---
+
+## Post-Synthesis Schematic (After Synthesis)
+
+### Description
+The post-synthesis schematic shows:
+- Actual logic gates and adders
+- Optimized data paths
+- Technology-mapped implementation
+
+### Comparison
+
+| RTL Schematic | Post-Synthesis Schematic |
+|--------------|--------------------------|
+| Behavioral | Structural |
+| Abstract blocks | Logic gates |
+| Technology independent | Technology dependent |
+
+---
+
+## Project Directory Structure
+
+
+
+---
+
+## Tools Used
+- Verilog HDL
+- Xilinx Vivado (Simulation & Synthesis)
+- GTKWave (optional waveform viewing)
+
+---
+
+## Learning Outcomes
+- Understanding ALU architecture
+- Designing combinational datapaths
+- Status flag generation
+- RTL to gate-level flow
+- Debugging and verification techniques
+
+---
+
+##  Applications of ALU
+- Microprocessors
+- Microcontrollers
+- Digital signal processing
+- Control units
+- FPGA-based systems
+
+---
+
+##  Verification Status
+✔ RTL Simulation – Passed  
+✔ Synthesis – Successful  
+
+---
+
+## Author
+**Anuj Sharma**  
+MSc Tech – Engineering Physics  
+Digital Design | Verilog | VLSI
 
 
