@@ -617,4 +617,182 @@ The post-synthesis schematic shows:
 
 ---
 
+# 4. D Flip-Flop – Verilog Design, Simulation & Synthesis
+
+##  Project Overview
+This project demonstrates the design and implementation of a **D (Data) Flip-Flop** using **Verilog HDL**, covering the complete digital design flow:
+- RTL design
+- Functional simulation
+- RTL schematic (before synthesis)
+- Post-synthesis schematic (after synthesis)
+
+A D flip-flop is a **clocked sequential circuit** that stores **one bit of data** and updates its output only on a specific clock edge.
+
+---
+
+## Theory of D Flip-Flop
+
+### What is a D Flip-Flop?
+A **D flip-flop** captures the value present at its **D (data) input** on the **active edge of the clock** and holds that value at the output until the next clock edge.
+
+- `D` → Data input  
+- `CLK` → Clock input  
+- `Q` → Stored output  
+
+---
+
+##  Operation (Positive Edge Triggered)
+
+| Clock Edge | D | Q (Next State) |
+|------------|---|----------------|
+| ↑ (posedge) | 0 | 0 |
+| ↑ (posedge) | 1 | 1 |
+| No edge | X | Q (holds previous value) |
+
+The output **changes only at the clock edge**, not continuously.
+
+---
+
+##  Characteristic Equation
+The behavior of a D flip-flop is described by: Q(next) = D
+
+
+This simplicity is why D flip-flops are the **most widely used storage elements** in digital systems.
+
+---
+
+## Circuit Diagram Explanation
+
+A D flip-flop can be built using:
+- Two latches (Master–Slave configuration), or
+- Edge-triggered logic internally
+
+### Working Principle:
+1. On the **active clock edge**, the input `D` is sampled
+2. The sampled value is transferred to output `Q`
+3. Output remains constant until the next active edge
+
+---
+
+## 🛠️ RTL Design (Verilog HDL)
+- Implemented using **edge-triggered always block**
+- Uses `posedge clk`
+- Fully synthesizable sequential logic
+- No combinational loops or latches
+
+<img width="1622" height="864" alt="Screenshot 2025-12-09 173305" src="https://github.com/user-attachments/assets/2d0d2722-d94c-4d03-b0c3-a1b92f21a741" />
+
+Example behavior:
+- At every rising edge of `clk`, `Q` updates to `D`
+- Between clock edges, output is stable
+
+---
+## Testbench
+
+<img width="1627" height="866" alt="Screenshot 2025-12-09 173317" src="https://github.com/user-attachments/assets/b0782bcf-e503-4ff1-8c67-fc84e71c9cf6" />
+<img width="1630" height="865" alt="Screenshot 2025-12-09 173329" src="https://github.com/user-attachments/assets/8b57f1e7-81d1-409d-a3bb-f8dfc3f5e6b6" />
+
+## Functional Simulation
+
+### Objective
+To verify correct **edge-triggered behavior** of the D flip-flop.
+
+### Simulation Method
+- Apply a periodic clock
+- Change `D` input between clock edges
+- Observe `Q` only changing at clock edges
+
+<img width="1620" height="866" alt="Screenshot 2025-12-09 173354" src="https://github.com/user-attachments/assets/d6ce78fb-aab9-4aa4-aea6-7f2f4e580c23" />
+
+### Result
+- `Q` updates exactly at the clock edge
+- No glitches or unintended transitions
+
+---
+
+## RTL Schematic (Before Synthesis)
+
+### Description
+The RTL schematic represents:
+- Flip-flop inference
+- Clocked storage element
+- Technology-independent structure
+
+<img width="1621" height="868" alt="Screenshot 2025-12-09 173338" src="https://github.com/user-attachments/assets/453e87d2-fc61-475c-a756-750809bd5021" />
+
+### Purpose
+- Verify that a **flip-flop (not a latch)** is inferred
+- Check correct clock connectivity
+
+---
+
+## Synthesis
+
+### Description
+Synthesis maps the RTL flip-flop into:
+- FPGA flip-flop primitives, or
+- Standard-cell DFFs in ASIC flow
+
+### Key Points
+- Clock is preserved
+- Storage element is optimized
+- Timing constraints apply to clock paths
+
+---
+
+## Post-Synthesis Schematic (After Synthesis)
+
+### Description
+The post-synthesis schematic shows:
+- Actual DFF cells
+- Clock routing connections
+- Technology-mapped implementation
+
+<img width="1575" height="815" alt="Screenshot 2025-12-09 173558" src="https://github.com/user-attachments/assets/92ad2d9e-3a8d-4972-88de-23bcc954af6a" />
+
+### Comparison
+
+| RTL Schematic | Post-Synthesis Schematic |
+|--------------|--------------------------|
+| Behavioral | Structural |
+| Abstract DFF | Technology DFF cell |
+| Tool-inferred | Library-mapped |
+
+---
+
+
+## Tools Used
+- Verilog HDL
+- Xilinx Vivado (Simulation & Synthesis)
+- GTKWave (optional waveform viewing)
+
+---
+
+## Learning Outcomes
+- Understanding sequential logic
+- Clocked storage behavior
+- Edge-triggered design
+- Difference between latch and flip-flop
+- RTL to gate-level design flow
+
+---
+
+## Applications of D Flip-Flop
+- Registers
+- Counters
+- Shift registers
+- Pipeline stages
+- State machines
+
+---
+
+## Verification Status
+✔ RTL Simulation – Passed  
+✔ Synthesis – Successful  
+
+---
+
+
+
+
 
