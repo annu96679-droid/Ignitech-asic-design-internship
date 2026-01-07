@@ -29,7 +29,7 @@ The design supports arithmetic operations, logical operations, shift/rotate func
 * Enable waveform-based functional verification
 
 
-## Program Counter
+# Program Counter
 
 **Role in CPU**
 
@@ -53,3 +53,15 @@ It supports:
 | pc_load      | input  | Enables jump         |
 | jump_address | input  | Target jump address  |
 | pc_out       | output | Current PC value     |
+
+**Behavior**
+
+* If reset = 1 → PC resets to 0
+
+* If pc_enable = 1 and pc_load = 0 → PC increments
+
+* If pc_enable = 1 and pc_load = 1 → load jump_address
+
+## Module
+
+
