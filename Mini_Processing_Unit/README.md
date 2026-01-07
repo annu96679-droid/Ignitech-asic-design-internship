@@ -29,3 +29,27 @@ The design supports arithmetic operations, logical operations, shift/rotate func
 * Enable waveform-based functional verification
 
 
+## Program Counter
+
+**Role in CPU**
+
+The Program Counter stores the address of the next instruction to execute.
+
+It supports:
+
+* Sequential instruction execution (PC + 1)
+
+* Jump / branch instructions (load address)
+
+* Reset start at instruction 0
+
+**Signals:**
+
+| Signal       | Type   | Meaning              |
+| ------------ | ------ | -------------------- |
+| clk          | input  | Synchronizes updates |
+| rst          | input  | Resets PC to 0       |
+| pc_enable    | input  | Allows PC to update  |
+| pc_load      | input  | Enables jump         |
+| jump_address | input  | Target jump address  |
+| pc_out       | output | Current PC value     |
