@@ -26,5 +26,6 @@ The design supports arithmetic operations, logical operations, shift/rotate func
 
 * Provide an extendable architecture for FPGA / ASIC / PD workflows
 
-Enable waveform-based functional verification
+* Enable waveform-based functional verification
+
 
