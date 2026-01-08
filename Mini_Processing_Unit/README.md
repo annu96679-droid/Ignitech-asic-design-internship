@@ -29,7 +29,7 @@ The design supports arithmetic operations, logical operations, shift/rotate func
 * Enable waveform-based functional verification
 
 
-# Program Counter
+# 1. Program Counter
 
 **Role in CPU**
 
@@ -131,7 +131,7 @@ When pc_enable = 1:
 
 <img width="1565" height="318" alt="image" src="https://github.com/user-attachments/assets/681a2f70-bea4-4bac-b086-46b5351b9b5b" />
 
-# Instruction memory
+# 2. Instruction memory
 
 **Instruction Memory Module – Detailed Explanation**
 
@@ -334,7 +334,7 @@ endmodule
 
 <img width="707" height="725" alt="image" src="https://github.com/user-attachments/assets/091a492c-28f0-4d9c-ab0e-de2f32d5e195" />
 
-## Instruction Register
+## 3. Instruction Register
 
 
 ### Theory: Instruction Register in a Mini Processing Unit
@@ -454,7 +454,7 @@ endmodule
 
 <img width="445" height="722" alt="image" src="https://github.com/user-attachments/assets/6b075d26-88d8-47b6-aaa1-630b3272e917" />
 
-## Register File
+## 4. Register File
 
 
 ### Role of Register File in Mini Processing Unit (MPU)
@@ -598,7 +598,7 @@ endmodule
 
 <img width="496" height="730" alt="image" src="https://github.com/user-attachments/assets/5f4bd362-35a8-4bd3-b4c8-9687ce077632" />
 
-## Arithmatic Logic Unit
+## 5. Arithmatic Logic Unit
 
 
 ### Role of ALU in Mini Processing Unit (MPU)
@@ -792,7 +792,7 @@ endmodule
 <img width="937" height="726" alt="image" src="https://github.com/user-attachments/assets/1f2a27af-22f5-4e02-8154-0d559371f326" />
 
 
-## Control Unit
+## 7. Control Unit
 
 ### Role of Control Unit in Mini Processing Unit (MPU)
 
@@ -1070,7 +1070,7 @@ endmodule
 
 <img width="1568" height="728" alt="image" src="https://github.com/user-attachments/assets/7e41c39b-e30f-4a1b-9bc6-3a4054a6d6bc" />
 
-## Data Memory (DMEM)
+## 8. Data Memory (DMEM)
 
 **What is Data Memory?**
 
@@ -1400,3 +1400,4 @@ endmodule
 
 * Overall, this project provides a strong foundation in processor microarchitecture, RTL design practices, control logic design, and verification methodology, while also serving as a solid starting point for full ASIC physical design flow implementation.
 * The modular nature of the design allows future extensions such as pipelining, additional instructions, cache integration, and low-power optimizations.
+
