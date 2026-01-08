@@ -120,3 +120,7 @@ When pc_enable = 1:
 * If pc_load = 1, the PC loads the value from jump_address (used for jump/branch instructions).
 
 * If pc_load = 0, the PC increments by 1, moving to the next instruction.
+
+## Schematic (without synthesis)
+
+<img width="1483" height="532" alt="image" src="https://github.com/user-attachments/assets/75159bd1-81e0-4ba4-a6b9-29e46de8e72d" />
