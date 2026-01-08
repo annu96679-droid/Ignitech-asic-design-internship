@@ -598,5 +598,475 @@ endmodule
 
 <img width="496" height="730" alt="image" src="https://github.com/user-attachments/assets/5f4bd362-35a8-4bd3-b4c8-9687ce077632" />
 
+## Arithmatic Logic Unit
 
+
+### Role of ALU in Mini Processing Unit (MPU)
+
+The **Arithmetic Logic Unit (ALU)** is the core computational block of the Mini Processing Unit.  
+It performs all **arithmetic, logical, shift, rotate, and comparison operations** required by instructions.
+
+The ALU receives operands from the **Register File**, executes the operation selected by the **Control Unit**, and produces:
+- Result data
+- Status flags for conditional operations and branching
+
+---
+
+### ALU Architecture Overview
+
+- Operand width: **8-bit**
+- Control select width: **4-bit**
+- Output result: **8-bit**
+- Status flags: **Carry, Zero, Sign, Overflow**
+- Fully combinational design
+
+
+---
+
+### Input Signal Description
+
+| Signal | Width | Description |
+|------|------|-------------|
+| `A` | 8-bit | First operand |
+| `B` | 8-bit | Second operand |
+| `Cin` | 1-bit | Carry input (used in ADC) |
+| `sel` | 4-bit | ALU operation select |
+
+---
+
+### Output Signal Description
+
+| Signal | Width | Description |
+|------|------|-------------|
+| `R` | 8-bit | Result of operation |
+| `C` | 1-bit | Carry flag |
+| `Z` | 1-bit | Zero flag |
+| `S` | 1-bit | Sign flag |
+| `V` | 1-bit | Overflow flag |
+
+---
+
+### Working of ALU
+
+The ALU operates as a **pure combinational block** using a `case(sel)` structure.
+
+A 9-bit temporary register is used internally to correctly capture carry and overflow:
+
+```verilog
+reg [8:0] temp;
+```
+
+### ALU Operation Table
+
+| `sel`  | Operation | Description                |
+| ------ | --------- | -------------------------- |
+| `0000` | ADD       | A + B                      |
+| `0001` | SUB       | A − B                      |
+| `0010` | ADC       | A + B + Carry              |
+| `0011` | INC       | A + 1                      |
+| `0100` | DEC       | A − 1                      |
+| `0101` | MUL       | A × B                      |
+| `0110` | CMP       | Compare A − B (flags only) |
+| `0111` | MOV       | Pass B                     |
+| `1000` | AND       | A & B                      |
+| `1001` | OR        | A | B                      |
+| `1010` | XOR       | A ^ B                      |
+| `1011` | NOT       | ~A                         |
+| `1100` | SHL       | Shift left                 |
+| `1101` | SHR       | Shift right                |
+| `1110` | ROL       | Rotate left                |
+| `1111` | ROR       | Rotate right               |
+
+## Module
+
+```bash
+module ALU_8bit(
+    input wire [7:0] A,
+    input wire [7:0] B,
+    input wire Cin,
+    input wire [3:0] sel,
+    output reg [7:0] R,
+    output reg C,
+    output reg Z,
+    output reg S,
+    output reg V
+);
+    
+    reg [8:0] temp;
+ 
+    always @(*)
+    begin
+        // Default values
+        R = 8'b0; 
+        C = 1'b0;
+        V = 1'b0; 
+
+        case (sel)  // Only use lower 4 bits for operation
+            // Arithmetic
+            4'b0000 : begin
+                temp = A + B; 
+                R = temp[7:0]; 
+                C = temp[8]; 
+                V = (A[7] == B[7]) && (R[7] != A[7]);
+            end
+  
+            // SUB
+            4'b0001 : begin
+                temp = A - B; 
+                R = temp[7:0]; 
+                C = temp[8];
+                V = (A[7] != B[7]) && (R[7] != A[7]);
+            end
+  
+            // ADD with carry
+            4'b0010 : begin
+                temp = A + B + Cin; 
+                R = temp[7:0]; 
+                C = temp[8];
+                V = (A[7] == B[7]) && (R[7] != A[7]);
+            end
+  
+            // Increment
+            4'b0011: begin
+                temp = A + 1; 
+                R = temp[7:0]; 
+                C = temp[8];
+            end
+  
+            // Decrement
+            4'b0100: begin                
+                temp = A - 1; 
+                R = temp[7:0]; 
+                C = temp[8];
+            end
+  
+            // Multiplier
+            4'b0101 : begin
+                temp = A * B; 
+                R = temp[7:0]; 
+                C = temp[8];
+            end
+  
+            // Compare (A-B), flags only
+            4'b0110 : begin
+                temp = A - B; 
+                R = 8'b0000;  // Fixed: Changed from 4'b0000 to 8'b0000
+                C = temp[8];
+                V = (A[7] != B[7]) && (temp[7] != A[7]);
+            end
+  
+            // Pass
+            4'b0111 : begin
+                R = B;
+            end
+  
+            // Logical
+            4'b1000: R = A & B;            // AND
+            4'b1001: R = A | B;            // OR
+            4'b1010: R = A ^ B;            // XOR
+            4'b1011: R = ~A;               // NOT
+  
+            // Shift
+            4'b1100: R = A << 1;           // Logical left shift
+            4'b1101: R = A >> 1;           // Logical right shift
+            4'b1110: R = {A[6:0], A[7]};   // Left rotate shift
+            4'b1111: R = {A[0], A[7:1]};   // Right rotate shift
+  
+            default: R = 8'b0000;
+        endcase
+  
+        Z = (R == 8'b0000);  // Fixed: Changed from 4'b0000 to 8'b0000
+        S = R[7];
+    end 
+endmodule
+```
+
+## Schematic
+
+**Before Synthesis**
+
+<img width="925" height="723" alt="image" src="https://github.com/user-attachments/assets/93afdfd1-47ef-406a-9add-8d2dc5c85635" />
+
+**After Synthesis**
+
+<img width="937" height="726" alt="image" src="https://github.com/user-attachments/assets/1f2a27af-22f5-4e02-8154-0d559371f326" />
+
+
+## Control Unit
+
+### Role of Control Unit in Mini Processing Unit (MPU)
+
+The **Control Unit** is the **brain of the Mini Processing Unit**.  
+It does not process data itself, but **controls and coordinates all other blocks** such as:
+
+- Program Counter
+- Instruction Register
+- Register File
+- ALU
+- Data Memory
+
+This Control Unit is implemented as a **Finite State Machine (FSM)** that sequences instruction execution across multiple clock cycles.
+
+---
+
+### Control Unit Architecture
+
+- Instruction-driven FSM
+- Multi-cycle execution model
+- Opcode-based control signal generation
+- Flag-aware branching support
+
+
+---
+
+### Input Signal Description
+
+| Signal | Width | Description |
+|------|------|-------------|
+| `clk` | 1-bit | System clock |
+| `rst` | 1-bit | Asynchronous reset |
+| `opcode` | 4-bit | Instruction opcode |
+| `zero_flag` | 1-bit | ALU zero flag |
+| `sign_flag` | 1-bit | ALU sign flag |
+| `overflow_flag` | 1-bit | ALU overflow flag |
+
+---
+
+### Output Signal Description
+
+| Signal | Width | Description |
+|------|------|-------------|
+| `pc_enable` | 1-bit | Enables PC increment |
+| `pc_load` | 1-bit | Loads jump address into PC |
+| `ir_load` | 1-bit | Loads instruction into IR |
+| `reg_write_en` | 1-bit | Enables register write |
+| `alu_src_sel` | 1-bit | Selects ALU B input source |
+| `alu_op` | 4-bit | ALU operation select |
+| `alu_cin` | 1-bit | Carry input for ADC |
+| `mem_read` | 1-bit | Enables memory read |
+| `mem_write` | 1-bit | Enables memory write |
+| `current_state` | 3-bit | Current FSM state |
+
+---
+
+### FSM States Definition
+
+| State | Code | Description |
+|-----|-----|-------------|
+| `S_FETCH` | 000 | Fetch instruction |
+| `S_DECODE` | 001 | Decode instruction |
+| `S_EXEC` | 010 | Execute operation |
+| `S_WRITEB` | 011 | Write result back |
+| `S_JUMP` | 100 | Jump execution |
+| `S_IMM` | 101 | Immediate instruction handling |
+
+---
+
+### Opcode to ALU Mapping
+
+| Opcode | Instruction | ALU Operation |
+| ------ | ----------- | ------------- |
+| `0000` | ADD         | ALU_ADD       |
+| `0001` | SUB         | ALU_SUB       |
+| `0010` | ADC         | ALU_ADC       |
+| `0011` | INC         | ALU_INC       |
+| `0100` | DEC         | ALU_DEC       |
+| `0101` | MUL         | ALU_MUL       |
+| `0110` | CMP         | ALU_CMP       |
+| `0111` | MOV         | ALU_MOV       |
+| `1000` | AND         | ALU_AND       |
+| `1001` | OR          | ALU_OR        |
+| `1010` | XOR         | ALU_XOR       |
+| `1011` | NOT         | ALU_NOT       |
+| `1100` | SHL         | ALU_SHL       |
+| `1101` | SHR         | ALU_SHR       |
+| `1110` | ROL         | ALU_ROL       |
+| `1111` | ROR / NOP   | ALU_ROR       |
+
+## Module
+
+```bash
+module ControlUnit (
+    input wire clk,
+    input wire rst,
+    input wire [3:0] opcode,
+    input wire zero_flag,
+    input wire sign_flag,
+    input wire overflow_flag,
+    output reg pc_enable,
+    output reg pc_load,
+    output reg ir_load,
+    output reg reg_write_en,
+    output reg alu_src_sel,
+    output reg [3:0] alu_op,
+    output reg alu_cin,
+    output reg mem_read,
+    output reg mem_write,
+    output reg [2:0] current_state
+);
+
+    // Instruction Opcodes (expanded) - ADD OP_NOP
+    localparam OP_ADD   = 4'b0000;
+    localparam OP_SUB   = 4'b0001;
+    localparam OP_ADC   = 4'b0010;  // Add with carry
+    localparam OP_INC   = 4'b0011;  // Increment
+    
+    localparam OP_DEC   = 4'b0100;  // Decrement
+    localparam OP_MUL   = 4'b0101;  // Multiply
+    localparam OP_CMP   = 4'b0110;  // Compare
+    localparam OP_MOV   = 4'b0111;  // Move
+   
+    localparam OP_AND   = 4'b1000;
+    localparam OP_OR    = 4'b1001;
+    localparam OP_XOR   = 4'b1010;
+    localparam OP_NOT   = 4'b1011;
+   
+    localparam OP_SHL   = 4'b1100;  // Shift left
+    localparam OP_SHR   = 4'b1101;  // Shift right
+    localparam OP_ROL   = 4'b1110;  // Rotate left
+    localparam OP_ROR   = 4'b1111;  // Rotate right
+    
+    localparam OP_LDI   = 4'b0011;  // Load immediate (same as CMP but will be differentiated)
+    localparam OP_JUMP  = 4'b0100;  // Jump (same as AND but will be differentiated)
+    localparam OP_JZ    = 4'b0101;  // Jump if zero (same as OR)
+    localparam OP_NOP   = 4'b1111;  // ADD THIS: No operation
+    
+    // ALU Operation Codes
+    localparam ALU_ADD  = 4'b0000;
+    localparam ALU_SUB  = 4'b0001;
+    localparam ALU_ADC  = 4'b0010;
+    localparam ALU_INC  = 4'b0011;
+    localparam ALU_DEC  = 4'b0100;
+    localparam ALU_MUL  = 4'b0101;
+    localparam ALU_CMP  = 4'b0110;
+    localparam ALU_MOV  = 4'b0111;
+    localparam ALU_AND  = 4'b1000;
+    localparam ALU_OR   = 4'b1001;
+    localparam ALU_XOR  = 4'b1010;
+    localparam ALU_NOT  = 4'b1011;
+    localparam ALU_SHL  = 4'b1100;
+    localparam ALU_SHR  = 4'b1101;
+    localparam ALU_ROL  = 4'b1110;
+    localparam ALU_ROR  = 4'b1111;
+    
+    // FSM States
+    localparam [2:0] S_FETCH  = 3'b000;
+    localparam [2:0] S_DECODE = 3'b001;
+    localparam [2:0] S_EXEC   = 3'b010;
+    localparam [2:0] S_WRITEB = 3'b011;
+    localparam [2:0] S_JUMP   = 3'b100;
+    localparam [2:0] S_IMM    = 3'b101;
+    
+    reg [2:0] next_state;
+    
+    // State Register
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            current_state <= S_FETCH;
+        end else begin
+            current_state <= next_state;
+        end
+    end
+    
+    // Next State Logic
+    always @(*) begin
+        case (current_state)
+            S_FETCH:  next_state = S_DECODE;
+            S_DECODE: begin
+                case (opcode)
+                    OP_JUMP, OP_JZ:   next_state = S_JUMP;
+                    OP_LDI:          next_state = S_IMM;
+                    default:         next_state = S_EXEC;
+                endcase
+            end
+            S_EXEC:   next_state = S_WRITEB;
+            S_WRITEB: next_state = S_FETCH;
+            S_JUMP:   next_state = S_FETCH;
+            S_IMM:    next_state = S_WRITEB;
+            default:  next_state = S_FETCH;
+        endcase
+    end
+    
+    // Output Logic - FIXED: Added OP_NOP to the condition
+    always @(*) begin
+        // Default outputs
+        pc_enable = 1'b0;
+        pc_load = 1'b0;
+        ir_load = 1'b0;
+        reg_write_en = 1'b0;
+        alu_src_sel = 1'b0;
+        alu_cin = 1'b0;
+        alu_op = 4'b0000;
+        mem_read = 1'b0;
+        mem_write = 1'b0;
+        
+        case (current_state)
+            S_FETCH: begin
+                ir_load = 1'b1;
+                pc_enable = 1'b1;
+            end
+            
+            S_DECODE: begin
+                // Decode only
+            end
+            
+            S_EXEC: begin
+                case (opcode)
+                    OP_ADD:  alu_op = ALU_ADD;
+                    OP_SUB:  alu_op = ALU_SUB;
+                    OP_ADC:  begin
+                        alu_op = ALU_ADC;
+                        alu_cin = 1'b1;
+                    end
+                    OP_INC:  alu_op = ALU_INC;
+                    OP_DEC:  alu_op = ALU_DEC;
+                    OP_MUL:  alu_op = ALU_MUL;
+                    OP_CMP:  alu_op = ALU_CMP;
+                    OP_MOV:  alu_op = ALU_MOV;
+                    OP_AND:  alu_op = ALU_AND;
+                    OP_OR:   alu_op = ALU_OR;
+                    OP_XOR:  alu_op = ALU_XOR;
+                    OP_NOT:  alu_op = ALU_NOT;
+                    OP_SHL:  alu_op = ALU_SHL;
+                    OP_SHR:  alu_op = ALU_SHR;
+                    OP_ROL:  alu_op = ALU_ROL;
+                    OP_ROR:  alu_op = ALU_ROR;
+                    OP_LDI:  begin
+                        alu_op = ALU_MOV;
+                        alu_src_sel = 1'b1;
+                    end
+                    default: alu_op = ALU_ADD;
+                endcase
+            end
+            
+            S_WRITEB: begin
+                // FIXED: Added OP_NOP to the condition
+                if (opcode != OP_JUMP && opcode != OP_JZ && opcode != OP_CMP && opcode != OP_NOP)
+                begin
+                    reg_write_en = 1'b1;
+                end
+                pc_enable = 1'b1;
+            end
+            
+            S_JUMP: begin
+                if ((opcode == OP_JUMP) || (opcode == OP_JZ && zero_flag))
+                begin
+                    pc_load = 1'b1;
+                end
+                pc_enable = 1'b1;
+            end
+        endcase
+    end
+
+endmodule 
+```
+## Schematic
+
+**Before Synthesis**
+
+<img width="1475" height="726" alt="image" src="https://github.com/user-attachments/assets/3b3e19fd-043c-4501-badb-14b808e93fce" />
+
+**After Synthesis**
+
+<img width="1568" height="728" alt="image" src="https://github.com/user-attachments/assets/7e41c39b-e30f-4a1b-9bc6-3a4054a6d6bc" />
 
