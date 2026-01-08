@@ -62,6 +62,31 @@ It supports:
 
 * If pc_enable = 1 and pc_load = 1 → load jump_address
 
+
 ## Module
 
+```bash
+module program_counter(
+    input wire clk,
+    input wire rst,
+    input wire pc_enable,
+    input wire pc_load,
+    input wire [7:0] jump_address,
+    output reg [7:0] pc_out  // Fixed: Changed from pc_out to [7:0] pc_out
+);
+    
+    always @(posedge clk or posedge rst)
+    begin
+        if (rst) begin
+            pc_out <= 8'b0;
+        end else if (pc_enable) begin
+            if (pc_load) begin
+                pc_out <= jump_address;
+            end else begin
+                pc_out <= pc_out + 1;
+            end
+        end
+    end
+endmodule
 
+```
