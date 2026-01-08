@@ -90,3 +90,33 @@ module program_counter(
 endmodule
 
 ```
+
+**Program Counter (PC) Module – Working Explanation**
+
+The Program Counter (PC) is a sequential logic block responsible for holding the address of the current instruction being executed by the processor. It controls the flow of instruction execution.
+
+**Input**
+
+* clk – System clock; PC updates occur on the rising edge.
+
+* rst – Asynchronous reset; resets the PC to 0.
+
+* pc_enable – Enables PC update when asserted.
+
+* pc_load – Selects jump operation when asserted.
+
+* jump_address [7:0] – Target address for jump instructions.
+
+**Output**
+
+* pc_out [7:0] – Current program counter value (instruction address).
+
+**Functional Behavior**
+
+* On reset (rst = 1), the PC is cleared to 0.
+
+When pc_enable = 1:
+
+* If pc_load = 1, the PC loads the value from jump_address (used for jump/branch instructions).
+
+* If pc_load = 0, the PC increments by 1, moving to the next instruction.
