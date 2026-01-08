@@ -492,6 +492,7 @@ R0 = 8'h0A
 R1 = 8'h05
 R2 = 8'h03
 R3 = 8'h00
+```
 
 **Write Operation (Synchronous)**
 
@@ -596,5 +597,6 @@ endmodule
 **After Synthesis**
 
 <img width="496" height="730" alt="image" src="https://github.com/user-attachments/assets/5f4bd362-35a8-4bd3-b4c8-9687ce077632" />
+
 
 
