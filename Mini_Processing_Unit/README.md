@@ -121,6 +121,135 @@ When pc_enable = 1:
 
 * If pc_load = 0, the PC increments by 1, moving to the next instruction.
 
-## Schematic (without synthesis)
+## Schematic 
+
+**Before Synthesis**
 
 <img width="1483" height="532" alt="image" src="https://github.com/user-attachments/assets/75159bd1-81e0-4ba4-a6b9-29e46de8e72d" />
+
+**After Synthesis**
+
+<img width="1565" height="318" alt="image" src="https://github.com/user-attachments/assets/681a2f70-bea4-4bac-b086-46b5351b9b5b" />
+
+# Instruction memory
+
+**Instruction Memory Module – Detailed Explanation**
+
+* The Instruction Memory stores the program executed by the Mini Processing Unit (MPU).
+
+* It is a read-only memory (ROM) that outputs a 16-bit instruction based on the address provided by the Program Counter (PC).
+
+**Module Interface**
+
+**Inputs**
+
+* address [7:0]
+* The memory address supplied by the Program Counter.
+* Since it is 8-bit wide, the instruction memory can store 256 instructions.
+
+**Outputs**
+
+* instruction [15:0]
+* The 16-bit instruction fetched from memory at the given address.
+
+**Internal Architecture**
+
+* The instruction memory is implemented as a 256 × 16-bit register array:
+
+* reg [15:0] mem [0:255];
+
+
+* Each memory location stores one complete instruction.
+
+* The memory is pre-initialized using an initial block, making it suitable for simulation and synthesis as ROM.
+
+**Instruction Encoding Format**
+
+The MPU supports multiple instruction formats:
+
+* R-Type (Register Type)
+
+   * [ opcode(4) | rd(2) | rs1(2) | rs2(2) | unused(6) ]
+
+
+* Used for arithmetic and logical operations like ADD, SUB, AND, OR, etc.
+
+* I-Type (Immediate Type)
+    * [ opcode(4) | rd(2) | rs1(2) | immediate(8) ]
+
+
+* Used for immediate operations such as LDI (Load Immediate).
+
+* J-Type (Jump Type)
+    * [ opcode(4) | unused(4) | jump_address(8) ]
+
+
+* Used for control-flow instructions like JUMP.
+
+**Program Stored in Instruction Memory**
+
+The memory is initialized with a test program that demonstrates all major MPU features:
+
+* Immediate Load
+
+* Loads constants into registers (R0, R1, R2).
+
+* Arithmetic Operations
+
+* ADD, SUB, ADC, INC, DEC, MUL.
+
+* Logical Operations
+
+* AND, OR, XOR, NOT.
+
+* Shift and Rotate
+
+* SHL, SHR, ROL, ROR.
+
+* Comparison
+
+* CMP instruction updates flags without writing results.
+
+* Control Flow
+
+* Jump instruction redirects execution.
+
+* NOP Instructions
+
+* Remaining memory locations are filled with NOPs to ensure safe execution.
+
+**Example:**
+
+* mem[0] = {4'b0110, 2'b00, 2'b00, 8'h0A}; // LDI R0, 10
+* mem[3] = {4'b0000, 2'b11, 2'b00, 2'b01, 6'b000000}; // ADD R3, R0, R1
+
+**Instruction Fetch Operation**
+
+Instruction fetch is asynchronous:
+
+always @(*) begin
+    instruction = mem[address];
+end
+
+
+* Whenever the Program Counter changes, the corresponding instruction is immediately available at the output.
+
+* No clock is required for read operations, enabling fast instruction fetch.
+
+**Key Characteristics**
+
+* 256-instruction program space
+
+* 16-bit wide instruction word
+
+* ROM-style implementation
+
+* Supports arithmetic, logical, shift, and control-flow instructions
+
+* Designed to integrate seamlessly with the Program Counter and Control Unit
+
+**Role in the MPU**
+
+* The Instruction Memory forms the Instruction Fetch stage of the processor pipeline.
+
+* It supplies decoded instructions to the Instruction Register, enabling execution by the Control Unit and ALU.
