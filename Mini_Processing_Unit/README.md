@@ -1070,3 +1070,333 @@ endmodule
 
 <img width="1568" height="728" alt="image" src="https://github.com/user-attachments/assets/7e41c39b-e30f-4a1b-9bc6-3a4054a6d6bc" />
 
+## Data Memory (DMEM)
+
+**What is Data Memory?**
+
+Data Memory is used to store and retrieve data values during program execution.
+
+Unlike Instruction Memory, which stores program instructions, Data Memory stores operands, intermediate results, and variables used by the processor.
+
+In an MPU, Data Memory is typically accessed by:
+
+* Load instructions (read data)
+
+* Store instructions (write data)
+
+### Input / Output Interface
+
+**Input**
+
+| Signal       | Width | Description                        |
+| ------------ | ----- | ---------------------------------- |
+| `clk`        | 1     | System clock                       |
+| `mem_read`   | 1     | Enables memory read                |
+| `mem_write`  | 1     | Enables memory write               |
+| `address`    | 8     | Memory address (from ALU)          |
+| `write_data` | 8     | Data to be written (from register) |
+
+**Outputs**
+
+| Signal      | Width | Description           |
+| ----------- | ----- | --------------------- |
+| `read_data` | 8     | Data read from memory |
+
+### Module
+
+```bash
+module data_memory (
+    input wire clk,
+    input wire mem_read,
+    input wire mem_write,
+    input wire [7:0] address,
+    input wire [7:0] write_data,
+    output reg [7:0] read_data
+);
+
+    // 256x8 Data Memory
+    reg [7:0] mem [0:255];
+    
+    // Initialize with zeros
+    integer i;
+    initial begin
+        for (i = 0; i < 256; i = i + 1) begin
+            mem[i] = 8'b0;
+        end
+    end
+    
+    // Read operation (asynchronous)
+    always @(*) begin
+        if (mem_read) begin
+            read_data = mem[address];
+        end else begin
+            read_data = 8'b0;
+        end
+    end
+    
+    // Write operation (synchronous)
+    always @(posedge clk) begin
+        if (mem_write) begin
+            mem[address] <= write_data;
+        end
+    end
+
+endmodule
+```
+
+### schematic
+
+**Before Synthesis**
+
+<img width="777" height="245" alt="image" src="https://github.com/user-attachments/assets/e76681e7-2954-4219-97f2-14f92f39e203" />
+
+**After Synthesis**
+
+
+<img width="712" height="716" alt="image" src="https://github.com/user-attachments/assets/9df1cdfe-94f5-40b5-b3ea-f61ca7432201" />
+
+
+## Top Module
+
+```bash
+module Top_module(
+    input wire clk,
+    input wire rst,
+
+    output wire [7:0] pc_value,
+    output wire [15:0] current_instruction,
+    output wire [7:0] alu_result,
+
+    output wire [7:0] reg0_value,
+    output wire [7:0] reg1_value,
+    output wire [7:0] reg2_value,
+    output wire [7:0] reg3_value,
+
+    output wire [2:0] current_state,
+
+    output wire zero_flag_out,
+    output wire carry_flag_out,
+    output wire sign_flag_out,
+    output wire overflow_flag_out
+);
+
+    wire [7:0] pc_out;
+    wire [15:0] instruction;
+
+    wire [3:0] opcode;
+    wire [1:0] reg_dest, reg_src1, reg_src2;
+    wire [7:0] immediate;
+
+    wire [7:0] reg_data1, reg_data2;
+    wire [7:0] alu_a, alu_b, alu_out;
+
+    wire zero_flag, carry_flag, sign_flag, overflow_flag;
+
+    wire pc_enable, pc_load, ir_load;
+    wire reg_write_en, alu_src_sel;
+    wire alu_cin;
+    wire [3:0] alu_op_control;
+    wire mem_read, mem_write;
+
+    wire [7:0] dmem_out;  // <<< Fix: connect memory output
+
+    assign opcode = instruction[15:12];
+    assign reg_dest = instruction[11:10];
+    assign reg_src1 = instruction[9:8];
+    assign reg_src2 = instruction[7:6];
+    assign immediate = instruction[7:0];
+
+    program_counter u_pc(
+        .clk(clk), .rst(rst),
+        .pc_enable(pc_enable), .pc_load(pc_load),
+        .jump_address(immediate),
+        .pc_out(pc_out)
+    );
+
+    instruction_memory u_imem(
+        .address(pc_out),
+        .instruction(instruction)
+    );
+
+    instruction_register u_ir(
+        .clk(clk), .rst(rst), .ir_load(ir_load),
+        .instruction_in(instruction),
+        .instruction_out(current_instruction)
+    );
+
+    register_file u_rf(
+        .clk(clk), .rst(rst),
+        .reg_write_en(reg_write_en),
+        .reg_write_addr(reg_dest),
+        .reg_read_addr1(reg_src1),
+        .reg_read_addr2(reg_src2),
+        .reg_write_data(alu_out),
+        .reg_read_data1(reg_data1),
+        .reg_read_data2(reg_data2),
+        .reg0_out(reg0_value),
+        .reg1_out(reg1_value),
+        .reg2_out(reg2_value),
+        .reg3_out(reg3_value)
+    );
+
+    assign alu_a = reg_data1;
+    assign alu_b = alu_src_sel ? immediate : reg_data2;
+
+    ALU_8bit u_alu(
+        .A(alu_a),
+        .B(alu_b),
+        .Cin(alu_cin),
+        .sel(alu_op_control),
+        .R(alu_out),
+        .C(carry_flag),
+        .Z(zero_flag),
+        .S(sign_flag),
+        .V(overflow_flag)
+    );
+
+    ControlUnit_NewALU u_cu(
+        .clk(clk), .rst(rst),
+        .opcode(opcode),
+        .zero_flag(zero_flag),
+        .sign_flag(sign_flag),
+        .overflow_flag(overflow_flag),
+
+        .pc_enable(pc_enable),
+        .pc_load(pc_load),
+        .ir_load(ir_load),
+        .reg_write_en(reg_write_en),
+        .alu_src_sel(alu_src_sel),
+        .alu_op(alu_op_control),
+        .alu_cin(alu_cin),
+        .mem_read(mem_read),
+        .mem_write(mem_write),
+        .current_state(current_state)
+    );
+
+wire [7:0] data_mem_out;
+
+    data_memory u_dmem(
+        .clk(clk),
+        .mem_read(mem_read),
+        .mem_write(mem_write),
+        .address(alu_out),
+        .write_data(reg_data2),
+        .read_data(data_mem_out)
+    );
+
+    assign pc_value = pc_out;
+    assign alu_result = alu_out;
+
+    assign zero_flag_out = zero_flag;
+    assign carry_flag_out = carry_flag;
+    assign sign_flag_out = sign_flag;
+    assign overflow_flag_out = overflow_flag;
+
+endmodule
+```
+## Testbench
+
+`timescale 1ns/1ps
+
+module mpu_simple_tb;
+
+    // Clock & Reset
+    reg clk;
+    reg rst;
+
+    // DUT Outputs
+    wire [7:0] pc_value;
+    wire [15:0] current_instruction;
+    wire [7:0] alu_result;
+    wire [7:0] reg0_value, reg1_value, reg2_value, reg3_value;
+    wire [2:0] current_state;
+    wire zero_flag_out, carry_flag_out, sign_flag_out, overflow_flag_out;
+
+    // DUT Instantiation
+    Top_module dut (
+        .clk(clk),
+        .rst(rst),
+        .pc_value(pc_value),
+        .current_instruction(current_instruction),
+        .alu_result(alu_result),
+        .reg0_value(reg0_value),
+        .reg1_value(reg1_value),
+        .reg2_value(reg2_value),
+        .reg3_value(reg3_value),
+        .current_state(current_state),
+        .zero_flag_out(zero_flag_out),
+        .carry_flag_out(carry_flag_out),
+        .sign_flag_out(sign_flag_out),
+        .overflow_flag_out(overflow_flag_out)
+    );
+
+    // Clock Generation: 100 MHz (10 ns period)
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk;
+    end
+
+    // Reset Sequence
+    initial begin
+        rst = 1;
+        #20;        // Hold reset
+        rst = 0;
+    end
+
+    // Monitor all important signals
+    initial begin
+        $monitor(
+            "$time=%0t | PC=%0d | INST=%h | ALU=%h | R0=%h R1=%h R2=%h R3=%h | Z=%b C=%b S=%b V=%b | STATE=%b", $time, pc_value, current_instruction, alu_result, reg0_value, reg1_value, reg2_value, reg3_value, zero_flag_out, carry_flag_out, sign_flag_out, overflow_flag_out, current_state );
+    end
+
+    // Stop simulation after some cycles
+    initial begin
+        #1000;
+        $display("Simulation finished");
+        $finish;
+    end
+
+endmodule
+
+## Waveform
+
+<img width="1576" height="812" alt="image" src="https://github.com/user-attachments/assets/488122ba-4002-44e1-aea7-c8bdfd6710db" />
+
+## Schematic
+
+**Before Synthesis**
+
+<img width="1570" height="586" alt="image" src="https://github.com/user-attachments/assets/866d1655-8c0b-40e4-99c2-20832d04ea64" />
+
+<img width="1537" height="661" alt="image" src="https://github.com/user-attachments/assets/5085c8e2-07ff-41b5-8e20-c5384a5075dc" />
+
+**After Synthesis**
+
+<img width="922" height="732" alt="image" src="https://github.com/user-attachments/assets/0a03ea3a-8abd-4eed-a159-ae8000b94312" />
+
+<img width="1177" height="777" alt="image" src="https://github.com/user-attachments/assets/5c414933-d8e1-424d-8bc8-72fe1c4193df" />
+
+### Default Layout
+
+<img width="502" height="732" alt="image" src="https://github.com/user-attachments/assets/fc44629b-35dd-4183-9431-da2ee808928a" />
+
+### Power Consumption
+
+<img width="1328" height="458" alt="image" src="https://github.com/user-attachments/assets/4f1a2f97-1a01-44e2-b020-3c69de21baa9" />
+
+## Conclusion
+
+* In this project, a Mini Processing Unit (MPU) was successfully designed and verified at the Register Transfer Level (RTL) using Verilog HDL.
+* The design implements a complete instruction execution flow, including instruction fetch, decode, execute, memory access, and write-back, closely resembling the internal operation of a basic microprocessor.
+
+* The MPU integrates all fundamental building blocks required in a processor architecture—Program Counter, Instruction Memory, Instruction Register, Register File, Arithmetic Logic Unit (ALU), Control Unit, and Data Memory—and coordinates them through a finite state machine–based control unit. 
+* Support for arithmetic, logical, shift, comparison, immediate, and control-flow instructions demonstrates a well-structured and extensible instruction set.
+
+* Functional verification was performed using a custom testbench, and waveform analysis confirmed correct behavior of the program counter progression, instruction decoding, ALU operations, register updates, and status flag generation.
+* The design is fully synchronous, modular, and synthesizable, making it suitable for downstream physical design stages.
+
+* Although FPGA-based power analysis reports show inflated power values due to the absence of realistic switching activity and timing constraints, these results are expected and do not reflect the true power characteristics of the design.
+* The project is intentionally structured to be ASIC-ready, with the next phase targeting open-source physical design tools and the SKY130 nm PDK for timing, power, and layout analysis.
+
+* Overall, this project provides a strong foundation in processor microarchitecture, RTL design practices, control logic design, and verification methodology, while also serving as a solid starting point for full ASIC physical design flow implementation.
+* The modular nature of the design allows future extensions such as pipelining, additional instructions, cache integration, and low-power optimizations.
