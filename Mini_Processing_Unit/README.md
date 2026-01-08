@@ -253,3 +253,205 @@ end
 * The Instruction Memory forms the Instruction Fetch stage of the processor pipeline.
 
 * It supplies decoded instructions to the Instruction Register, enabling execution by the Control Unit and ALU.
+
+## Module
+
+```bash
+module instruction_memory (
+    input wire [7:0] address,
+    output reg [15:0] instruction
+);
+
+    // 256x16 Instruction Memory with extended instruction set
+   (* keep = "true" *) 
+    reg [15:0] mem [0:255];
+    
+    integer i;
+    
+    initial
+    begin
+       
+        // Format variations:
+        // R-type: [opcode(4)][rd(2)][rs1(2)][rs2(2)][xxx(6)]
+        // I-type: [opcode(4)][rd(2)][rs1(2)][imm(8)]
+        // J-type: [opcode(4)][xxx(4)][address(8)]
+        
+        // Test Program: Demonstrates all ALU operations
+        mem[0] = {4'b0110, 2'b00, 2'b00, 8'h0A};   // LDI R0, 0x0A (10)
+        mem[1] = {4'b0110, 2'b01, 2'b00, 8'h05};   // LDI R1, 0x05 (5)
+        mem[2] = {4'b0110, 2'b10, 2'b00, 8'h03};   // LDI R2, 0x03 (3)
+        
+        // Arithmetic Operations
+        mem[3] = {4'b0000, 2'b11, 2'b00, 2'b01, 6'b000000};  // ADD R3, R0, R1 (10 + 5 = 15)
+        mem[4] = {4'b0001, 2'b11, 2'b00, 2'b01, 6'b000000};  // SUB R3, R0, R1 (10 - 5 = 5)
+        mem[5] = {4'b0010, 2'b11, 2'b00, 2'b01, 6'b000000};  // ADC R3, R0, R1 (with carry)
+        mem[6] = {4'b0011, 2'b00, 2'b00, 8'b00000000};       // INC R0 (R0 = 11)
+        mem[7] = {4'b0100, 2'b01, 2'b00, 8'b00000000};       // DEC R1 (R1 = 4)
+        mem[8] = {4'b0101, 2'b11, 2'b00, 2'b10, 6'b000000};  // MUL R3, R0, R2 (11 * 3 = 33)
+        
+        // Compare Operation
+        mem[9] = {4'b0110, 2'b00, 2'b00, 2'b01, 6'b000000};  // CMP R0, R1 (set flags)
+        
+        // Move Operation
+        mem[10] = {4'b0111, 2'b11, 2'b01, 8'b00000000};      // MOV R3, R1 (copy R1 to R3)
+        
+        // Logical Operations
+        mem[11] = {4'b1000, 2'b11, 2'b00, 2'b01, 6'b000000}; // AND R3, R0, R1
+        mem[12] = {4'b1001, 2'b11, 2'b00, 2'b01, 6'b000000}; // OR R3, R0, R1
+        mem[13] = {4'b1010, 2'b11, 2'b00, 2'b01, 6'b000000}; // XOR R3, R0, R1
+        mem[14] = {4'b1011, 2'b00, 2'b00, 8'b00000000};      // NOT R0
+        
+        // Shift Operations
+        mem[15] = {4'b1100, 2'b00, 2'b00, 8'b00000000};      // SHL R0 (R0 << 1)
+        mem[16] = {4'b1101, 2'b01, 2'b00, 8'b00000000};      // SHR R1 (R1 >> 1)
+        mem[17] = {4'b1110, 2'b10, 2'b00, 8'b00000000};      // ROL R2
+        mem[18] = {4'b1111, 2'b11, 2'b00, 8'b00000000};      // ROR R3
+        
+        // Control Flow
+        mem[19] = 16'hB000;                // JUMP to address 0
+       
+        // mem[20] would be JZ if zero flag is set
+        
+        // Fill rest with NOPs (opcode 1111 with no write)
+        for (i = 20; i < 256; i = i + 1) begin
+            mem[i] = 16'hB000; // NOP instruction
+        end
+    end
+    
+    always @(*) begin
+        instruction = mem[address];
+    end
+
+endmodule
+```
+
+## Synthesis
+
+**Before Synthesis**
+<img width="1207" height="367" alt="image" src="https://github.com/user-attachments/assets/3e2f4d77-6df4-40a8-b5c4-baa703e78c0c" />
+
+**After Synthesis**
+<img width="707" height="725" alt="image" src="https://github.com/user-attachments/assets/091a492c-28f0-4d9c-ab0e-de2f32d5e195" />
+
+## Instruction Register
+
+
+### Theory: Instruction Register in a Mini Processing Unit
+
+In a **Mini Processing Unit (MPU)**, instructions are fetched from the Instruction Memory using the Program Counter.  
+However, memory outputs can change every clock cycle as the PC increments.
+
+To ensure **stable execution**, the fetched instruction must be **latched and held constant** while it is decoded and executed.
+
+This is the purpose of the **Instruction Register (IR)**.
+
+---
+
+### Why an Instruction Register is Required
+
+Without an Instruction Register:
+- Instruction memory output may change during execution
+- Control signals may become unstable
+- Incorrect operations may occur
+
+With an Instruction Register:
+- Instructions are **captured once**
+- Decoding and execution happen reliably
+- Multi-cycle CPU operation becomes possible
+
+---
+
+###  Role of Instruction Register in MPU Pipeline
+
+
+The Instruction Register acts as a **pipeline latch** between:
+- **Fetch Stage**
+- **Decode & Execute Stages**
+
+---
+
+## Working of Instruction Register
+
+The Instruction Register operates in **three conditions**:
+
+### Reset Condition
+- Clears the stored instruction
+- Prevents execution of invalid data after reset
+
+### Load Condition
+- Loads a new instruction from Instruction Memory
+- Happens only during the FETCH stage
+
+### Hold Condition
+- Retains the same instruction
+- Allows proper decode and execution
+
+---
+
+### Module Interface
+
+| Signal | Width | Description |
+|------|------|-------------|
+| `clk` | 1-bit | System clock |
+| `rst` | 1-bit | Asynchronous reset |
+| `ir_load` | 1-bit | Instruction load enable |
+| `instruction_in` | 16-bit | Instruction from memory |
+| `instruction_out` | 16-bit | Stored instruction |
+
+---
+### Instruction Field Decoding
+
+| Field Name           | Bit Range | Description                |
+| -------------------- | --------- | -------------------------- |
+| Opcode               | [15:12]   | Specifies instruction type |
+| Destination Register | [11:10]   | Target register            |
+| Source Register 1    | [9:8]     | First operand              |
+| Source Register 2    | [7:6]     | Second operand             |
+| Immediate            | [7:0]     | Immediate data             |
+| Jump Offset          | [7:0]     | Jump address               |
+
+## Module
+
+```bash
+module instruction_register(
+input wire clk,
+input wire rst,
+input ir_load,      //enable
+input wire [15:0] instruction_in,
+output reg [15:0] instruction_out
+);
+
+always @(posedge clk or posedge rst)
+begin
+if (rst)
+begin
+instruction_out <= 16'b0;
+end
+else if (ir_load)
+begin
+instruction_out <= instruction_in;
+end
+end
+
+ wire [3:0] opcode = instruction_out[15:12];
+ wire [1:0] reg_dest = instruction_out[11:10];
+ wire [1:0] reg_src1 = instruction_out[9:8];
+ wire [1:0] reg_src2 = instruction_out[7:6];
+ wire [7:0] immediate = instruction_out[7:0];
+ wire [7:0] jump_offset = instruction_out[7:0];
+
+endmodule
+
+```
+## Synthesis
+
+**Before Synthesis**
+
+<img width="1248" height="433" alt="image" src="https://github.com/user-attachments/assets/4fa4e65d-3bb7-4722-9cfc-843724f6120e" />
+
+**After Synthesis**
+
+<img width="445" height="722" alt="image" src="https://github.com/user-attachments/assets/6b075d26-88d8-47b6-aaa1-630b3272e917" />
+
+
+
