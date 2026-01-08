@@ -331,6 +331,7 @@ endmodule
 <img width="1207" height="367" alt="image" src="https://github.com/user-attachments/assets/3e2f4d77-6df4-40a8-b5c4-baa703e78c0c" />
 
 **After Synthesis**
+
 <img width="707" height="725" alt="image" src="https://github.com/user-attachments/assets/091a492c-28f0-4d9c-ab0e-de2f32d5e195" />
 
 ## Instruction Register
@@ -443,7 +444,7 @@ end
 endmodule
 
 ```
-## Synthesis
+## Schematic
 
 **Before Synthesis**
 
@@ -453,5 +454,147 @@ endmodule
 
 <img width="445" height="722" alt="image" src="https://github.com/user-attachments/assets/6b075d26-88d8-47b6-aaa1-630b3272e917" />
 
+## Register File
+
+
+### Role of Register File in Mini Processing Unit (MPU)
+
+The **Register File** is a high-speed storage block inside the Mini Processing Unit that holds **temporary data operands and results** required during instruction execution.
+
+In this MPU design, the Register File consists of **four 8-bit general-purpose registers (R0–R3)**.  
+It supports:
+- **Two simultaneous read operations**
+- **One synchronous write operation**
+
+This structure enables efficient execution of arithmetic, logical, and data movement instructions.
+
+---
+
+### Register File Architecture
+
+- Number of registers: **4**
+- Width of each register: **8 bits**
+- Address width: **2 bits**
+- Read ports: **2 (asynchronous)**
+- Write ports: **1 (synchronous)**
+
+
+---
+
+### Working of Register File
+
+**Reset Operation**
+- When `rst = 1`, all registers are initialized with predefined values.
+- Ensures a known startup state for simulation and execution.
+
+```verilog
+R0 = 8'h0A
+R1 = 8'h05
+R2 = 8'h03
+R3 = 8'h00
+
+**Write Operation (Synchronous)**
+
+* Write occurs only on the rising edge of the clock
+
+* Enabled when reg_write_en = 1
+
+* Data is written to the register selected by reg_write_addr
+
+* registers[reg_write_addr] <= reg_write_data;
+
+* Controlled by the Control Unit during the WRITE-BACK stage.
+
+**Read Operation (Asynchronous)**
+
+* Two registers can be read simultaneously
+
+* Read data updates immediately when read address changes
+
+```bash
+reg_read_data1 = registers[reg_read_addr1];
+reg_read_data2 = registers[reg_read_addr2];
+```
+### Inputs Signal
+
+| Signal           | Width | Description                  |
+| ---------------- | ----- | ---------------------------- |
+| `clk`            | 1-bit | System clock                 |
+| `rst`            | 1-bit | Asynchronous reset           |
+| `reg_write_en`   | 1-bit | Enables write operation      |
+| `reg_write_addr` | 2-bit | Destination register address |
+| `reg_read_addr1` | 2-bit | Source register 1            |
+| `reg_read_addr2` | 2-bit | Source register 2            |
+| `reg_write_data` | 8-bit | Data to be written           |
+
+### Output Signal
+
+| Signal           | Width | Description                 |
+| ---------------- | ----- | --------------------------- |
+| `reg_read_data1` | 8-bit | Data from source register 1 |
+| `reg_read_data2` | 8-bit | Data from source register 2 |
+| `reg0_out`       | 8-bit | Content of register R0      |
+| `reg1_out`       | 8-bit | Content of register R1      |
+| `reg2_out`       | 8-bit | Content of register R2      |
+| `reg3_out`       | 8-bit | Content of register R3      |
+
+## Module
+
+```bash
+module register_file (
+    input  wire       clk,
+    input  wire       rst,
+    input  wire       reg_write_en,
+    input  wire [1:0] reg_write_addr,
+    input  wire [1:0] reg_read_addr1,
+    input  wire [1:0] reg_read_addr2,
+    input  wire [7:0] reg_write_data,
+    output reg  [7:0] reg_read_data1,
+    output reg  [7:0] reg_read_data2,
+    output wire [7:0] reg0_out,
+    output wire [7:0] reg1_out,
+    output wire [7:0] reg2_out,
+    output wire [7:0] reg3_out
+);
+
+    // 4 general-purpose registers
+    reg [7:0] registers [0:3];
+
+    // -------- SINGLE always-block (reset + write) --------
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            registers[0] <= 8'h0A;
+            registers[1] <= 8'h05;
+            registers[2] <= 8'h03;
+            registers[3] <= 8'h00;
+        end 
+        else if (reg_write_en) begin
+            registers[reg_write_addr] <= reg_write_data;
+        end
+    end
+
+    // -------- Asynchronous reads --------
+    always @(*) begin
+        reg_read_data1 = registers[reg_read_addr1];
+        reg_read_data2 = registers[reg_read_addr2];
+    end
+
+    // -------- Safe outputs for monitoring --------
+    assign reg0_out = registers[0];
+    assign reg1_out = registers[1];
+    assign reg2_out = registers[2];
+    assign reg3_out = registers[3];
+
+endmodule
+```
+## Schematic
+
+**Before Synthesis**
+
+<img width="1512" height="726" alt="image" src="https://github.com/user-attachments/assets/252fa6a5-e0b8-489a-8e5f-ce17983cbd2a" />
+
+**After Synthesis**
+
+<img width="496" height="730" alt="image" src="https://github.com/user-attachments/assets/5f4bd362-35a8-4bd3-b4c8-9687ce077632" />
 
 
